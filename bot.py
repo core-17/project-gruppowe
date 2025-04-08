@@ -2,15 +2,10 @@ import os
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
-<<<<<<< HEAD
 from db.database import init_db
 import asyncio
 
 init_db()
-=======
-import asyncio
-
->>>>>>> ef1d61000b7acdd2f33d1ceea9d191edf8ccbee9
 # Load environment variables 
 load_dotenv()
 
@@ -26,10 +21,7 @@ INITIAL_EXTENSIONS = [
     'cogs.moderation',
     'cogs.utils',
     'cogs.sort',
-<<<<<<< HEAD
     'cogs.list',
-=======
->>>>>>> ef1d61000b7acdd2f33d1ceea9d191edf8ccbee9
 ]
 
 
