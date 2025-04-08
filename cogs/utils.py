@@ -103,6 +103,7 @@ class Utils(commands.Cog):
                 "!clear <channel type>": "Delete all channels of the specified type",
                 "!clean [amount]": "Delete messages in the current channel",
                 "!delete_voice_channel <name>": "Delete voice channels with the specified name"
+                "!delete_text_channel <name>": "Delete text channels with the specified name",
             },
             "ℹ️ Other": {
                 "!hello": "Say hello to the bot",

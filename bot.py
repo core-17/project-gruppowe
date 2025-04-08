@@ -40,8 +40,5 @@ if __name__ == "__main__":
     if TOKEN is None:
         print("Please set up your DISCORD_TOKEN in .env file")
         exit(1)
-        
-    print("Starting bot...")
-    # Start the bot with the token
     bot.run(TOKEN)
     
