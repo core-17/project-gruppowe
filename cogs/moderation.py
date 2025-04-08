@@ -2,14 +2,13 @@ import discord
 from discord.ext import commands
 import typing
 
-# Список дозволених користувачів (можна додавати нові ніки)
+# List of allowed users (add new usernames here)
 ALLOWED_USERS = [
     '_fate_._',
     'horafy',
     'itshazen',
-     'core_17',
-
-    # Додайте інші ніки тут, наприклад:
+    'core_17',
+    # Add other usernames here, for example:
     # 'another_user',
     # 'moderator_nick',
 ]
@@ -18,7 +17,7 @@ def is_allowed_user():
     async def predicate(ctx):
         if ctx.author.name in ALLOWED_USERS:
             return True
-        await ctx.send(f"❌ Цю команду можуть використовувати тільки дозволені користувачі!")
+        await ctx.send(f"❌ Only allowed users can use this command!")
         return False
     return commands.check(predicate)
 
@@ -29,195 +28,195 @@ class Moderation(commands.Cog):
     @commands.command(name='kick')
     @commands.has_permissions(kick_members=True)
     @is_allowed_user()
-    async def kick(self, ctx, member: discord.Member, *, reason="Причину не вказано"):
+    async def kick(self, ctx, member: discord.Member, *, reason="No reason provided"):
         try:
-            # Спроба відправити повідомлення в ЛС
+            # Attempt to send a DM to the user
             try:
                 embed = discord.Embed(
-                    title="❌ Вас було вигнано з серверу",
-                    description=f"**Сервер:** {ctx.guild.name}\n**Причина:** {reason}",
+                    title="❌ You have been kicked from the server",
+                    description=f"**Server:** {ctx.guild.name}\n**Reason:** {reason}",
                     color=discord.Color.red()
                 )
                 await member.send(embed=embed)
             except discord.Forbidden:
-                await ctx.send("⚠️ Не вдалося відправити повідомлення користувачу (можливо, в нього закриті ЛС)")
+                await ctx.send("⚠️ Could not send a DM to the user (they might have DMs disabled)")
             except Exception as e:
-                print(f"Помилка при відправці ЛС: {e}")
+                print(f"Error sending DM: {e}")
             
-            # Кікаємо користувача
+            # Kick the user
             await member.kick(reason=reason)
-            await ctx.send(f'👢 Користувача {member.mention} було вигнано з серверу.\nПричина: {reason}')
+            await ctx.send(f'👢 User {member.mention} has been kicked from the server.\nReason: {reason}')
         except discord.Forbidden:
-            await ctx.send('❌ У мене немає прав для виконання цієї дії!')
+            await ctx.send('❌ I do not have permission to perform this action!')
         except discord.HTTPException:
-            await ctx.send('❌ Виникла помилка при спробі вигнати користувача.')
+            await ctx.send('❌ An error occurred while trying to kick the user.')
 
     @kick.error
     async def kick_error(self, ctx, error):
         if isinstance(error, commands.MissingPermissions):
-            await ctx.send('❌ У вас немає прав для виконання цієї команди!')
+            await ctx.send('❌ You do not have permission to use this command!')
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send('❌ Вкажіть користувача якого потрібно вигнати!\nПриклад: !kick @користувач причина')
+            await ctx.send('❌ Please specify the user to kick!\nExample: !kick @user reason')
         elif isinstance(error, commands.MemberNotFound):
-            await ctx.send('❌ Користувача не знайдено!')
+            await ctx.send('❌ User not found!')
 
     @commands.command(name='ban')
     @commands.has_permissions(ban_members=True)
     @is_allowed_user()
     async def ban(self, ctx, member: typing.Union[discord.Member, str], *, reason=None):
-        """Блокує користувача або всіх користувачів на сервері"""
+        """Ban a user or all users on the server"""
         try:
             if isinstance(member, str) and member.lower() == 'all':
-                # Масовий бан всіх користувачів
+                # Mass ban all users
                 banned_count = 0
                 failed_count = 0
                 
-                # Створюємо embed для прогресу
+                # Create an embed for progress
                 progress_embed = discord.Embed(
-                    title="🔨 Масовий бан користувачів",
-                    description="Процес розпочато...",
+                    title="🔨 Mass banning users",
+                    description="Process started...",
                     color=discord.Color.red()
                 )
                 progress_message = await ctx.send(embed=progress_embed)
                 
-                # Отримуємо всіх учасників серверу
+                # Get all members of the server
                 members = ctx.guild.members
                 
                 for target in members:
-                    # Пропускаємо бота та користувача, який викликав команду
+                    # Skip the bot and the user who issued the command
                     if target.bot or target == ctx.author:
                         continue
                         
                     try:
-                        # Спроба відправити повідомлення в ЛС
+                        # Attempt to send a DM to the user
                         try:
                             embed = discord.Embed(
-                                title="❌ Вас було заблоковано на сервері",
-                                description=f"**Сервер:** {ctx.guild.name}\n**Причина:** {reason if reason else 'Масовий бан'}",
+                                title="❌ You have been banned from the server",
+                                description=f"**Server:** {ctx.guild.name}\n**Reason:** {reason if reason else 'Mass ban'}",
                                 color=discord.Color.red()
                             )
                             await target.send(embed=embed)
                         except:
-                            pass  # Ігноруємо помилки відправки ЛС
+                            pass  # Ignore DM errors
                         
-                        # Баним користувача
-                        await target.ban(reason=f"Масовий бан | {reason if reason else 'Причину не вказано'}")
+                        # Ban the user
+                        await target.ban(reason=f"Mass ban | {reason if reason else 'No reason provided'}")
                         banned_count += 1
                         
-                        # Оновлюємо прогрес кожні 5 банів
+                        # Update progress every 5 bans
                         if banned_count % 5 == 0:
-                            progress_embed.description = f"Заблоковано: {banned_count}\nПомилок: {failed_count}"
+                            progress_embed.description = f"Banned: {banned_count}\nErrors: {failed_count}"
                             await progress_message.edit(embed=progress_embed)
                             
                     except discord.Forbidden:
                         failed_count += 1
                     except Exception as e:
                         failed_count += 1
-                        print(f"Помилка при бані {target.name}: {str(e)}")
+                        print(f"Error banning {target.name}: {str(e)}")
                 
-                # Фінальне повідомлення
+                # Final message
                 final_embed = discord.Embed(
-                    title="🔨 Масовий бан завершено",
-                    description=f"✅ Успішно заблоковано: {banned_count}\n❌ Помилок: {failed_count}",
+                    title="🔨 Mass ban completed",
+                    description=f"✅ Successfully banned: {banned_count}\n❌ Errors: {failed_count}",
                     color=discord.Color.green()
                 )
                 await progress_message.edit(embed=final_embed)
                 
             else:
-                # Звичайний бан одного користувача
+                # Regular ban for a single user
                 if not isinstance(member, discord.Member):
                     raise commands.MemberNotFound(member)
                     
-                # Спроба відправити повідомлення в ЛС
+                # Attempt to send a DM to the user
                 try:
                     embed = discord.Embed(
-                        title="❌ Вас було заблоковано на сервері",
-                        description=f"**Сервер:** {ctx.guild.name}\n**Причина:** {reason if reason else 'Причину не вказано'}",
+                        title="❌ You have been banned from the server",
+                        description=f"**Server:** {ctx.guild.name}\n**Reason:** {reason if reason else 'No reason provided'}",
                         color=discord.Color.red()
                     )
                     await member.send(embed=embed)
                 except:
-                    pass  # Ігноруємо помилки відправки ЛС
+                    pass  # Ignore DM errors
                 
                 await member.ban(reason=reason)
-                await ctx.send(f'🔨 Користувача {member.mention} було заблоковано на сервері.\nПричина: {reason if reason else "Не вказано"}')
+                await ctx.send(f'🔨 User {member.mention} has been banned from the server.\nReason: {reason if reason else "No reason provided"}')
                 
         except discord.Forbidden:
-            await ctx.send('❌ У мене немає прав для виконання цієї дії!')
+            await ctx.send('❌ I do not have permission to perform this action!')
         except commands.MemberNotFound:
-            await ctx.send('❌ Користувача не знайдено!')
+            await ctx.send('❌ User not found!')
         except Exception as e:
-            await ctx.send(f'❌ Виникла помилка: {str(e)}')
+            await ctx.send(f'❌ An error occurred: {str(e)}')
 
     @ban.error
     async def ban_error(self, ctx, error):
         if isinstance(error, commands.MissingPermissions):
-            await ctx.send('❌ У вас немає прав для виконання цієї команди!')
+            await ctx.send('❌ You do not have permission to use this command!')
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send('❌ Вкажіть користувача або "all" для бану всіх!\nПриклад: !ban @користувач причина\nАбо: !ban all причина')
+            await ctx.send('❌ Please specify a user or "all" to ban everyone!\nExample: !ban @user reason\nOr: !ban all reason')
 
     @commands.command(name='clear')
     @commands.has_permissions(manage_channels=True)
     @is_allowed_user()
     async def clear(self, ctx, channel_type: str):
-        """Видаляє всі канали вказаного типу"""
+        """Delete all channels of the specified type"""
         if channel_type.lower() not in ['chat', 'voice-chat']:
-            await ctx.send("❌ Вкажіть правильний тип каналів (chat або voice-chat)!")
+            await ctx.send("❌ Please specify a valid channel type (chat or voice-chat)!")
             return
 
         deleted_count = 0
         
         try:
-            # Отримуємо всі канали серверу
+            # Get all channels of the specified type
             if channel_type.lower() == 'chat':
                 channels = [c for c in ctx.guild.channels if isinstance(c, discord.TextChannel)]
-                channel_type_name = "текстових каналів"
+                channel_type_name = "text channels"
             else:  # voice-chat
                 channels = [c for c in ctx.guild.channels if isinstance(c, discord.VoiceChannel)]
-                channel_type_name = "голосових каналів"
+                channel_type_name = "voice channels"
 
             if not channels:
-                await ctx.send(f"❌ На сервері немає {channel_type_name}!")
+                await ctx.send(f"❌ No {channel_type_name} found on the server!")
                 return
 
-            # Видаляємо канали
+            # Delete the channels
             for channel in channels:
                 try:
                     await channel.delete()
                     deleted_count += 1
                 except discord.Forbidden:
-                    await ctx.send(f"❌ У мене немає прав для видалення каналу {channel.name}!")
+                    await ctx.send(f"❌ I do not have permission to delete the channel {channel.name}!")
                 except Exception as e:
-                    await ctx.send(f"❌ Помилка при видаленні каналу {channel.name}: {str(e)}")
+                    await ctx.send(f"❌ Error deleting the channel {channel.name}: {str(e)}")
 
-            await ctx.send(f"🗑️ Видалено {deleted_count} {channel_type_name}")
+            await ctx.send(f"🗑️ Deleted {deleted_count} {channel_type_name}")
 
         except discord.Forbidden:
-            await ctx.send("❌ У мене немає прав для керування каналами!")
+            await ctx.send("❌ I do not have permission to manage channels!")
         except Exception as e:
-            await ctx.send(f"❌ Виникла помилка: {str(e)}")
+            await ctx.send(f"❌ An error occurred: {str(e)}")
 
     @clear.error
     async def clear_error(self, ctx, error):
         if isinstance(error, commands.MissingPermissions):
-            await ctx.send("❌ У вас немає прав для керування каналами!")
+            await ctx.send("❌ You do not have permission to manage channels!")
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("❌ Вкажіть тип каналів!\nПриклад: !clear chat або !clear voice-chat")
+            await ctx.send("❌ Please specify the channel type!\nExample: !clear chat or !clear voice-chat")
 
     @commands.command(name='clean')
     @commands.has_permissions(manage_messages=True)
     @is_allowed_user()
     async def clean(self, ctx, amount: int = None):
-        """Видаляє повідомлення в поточному каналі"""
+        """Delete messages in the current channel"""
         if amount is not None and amount <= 0:
-            await ctx.send("❌ Кількість повідомлень має бути більше 0!")
+            await ctx.send("❌ The number of messages must be greater than 0!")
             return
 
         try:
-            # Видаляємо команду користувача
+            # Delete the user's command
             await ctx.message.delete()
             
-            # Якщо кількість не вказана, видаляємо всі повідомлення
+            # If no amount is specified, delete all messages
             if amount is None:
                 deleted = 0
                 async with ctx.typing():
@@ -228,10 +227,10 @@ class Moderation(commands.Cog):
                         except discord.NotFound:
                             continue
                         except discord.Forbidden:
-                            await ctx.send("❌ У мене немає прав для видалення деяких повідомлень!")
+                            await ctx.send("❌ I do not have permission to delete some messages!")
                             break
             else:
-                # Видаляємо вказану кількість повідомлень
+                # Delete the specified number of messages
                 deleted = 0
                 async with ctx.typing():
                     async for message in ctx.channel.history(limit=amount):
@@ -241,25 +240,85 @@ class Moderation(commands.Cog):
                         except discord.NotFound:
                             continue
                         except discord.Forbidden:
-                            await ctx.send("❌ У мене немає прав для видалення деяких повідомлень!")
+                            await ctx.send("❌ I do not have permission to delete some messages!")
                             break
 
-            # Відправляємо повідомлення про результат
-            result_message = await ctx.send(f"🗑️ Видалено {deleted} повідомлень")
-            # Видаляємо повідомлення про результат через 5 секунд
+            # Send a result message
+            result_message = await ctx.send(f"🗑️ Deleted {deleted} messages")
+            # Delete the result message after 5 seconds
             await result_message.delete(delay=5)
 
         except discord.Forbidden:
-            await ctx.send("❌ У мене немає прав для видалення повідомлень!")
+            await ctx.send("❌ I do not have permission to delete messages!")
         except Exception as e:
-            await ctx.send(f"❌ Виникла помилка: {str(e)}")
+            await ctx.send(f"❌ An error occurred: {str(e)}")
 
     @clean.error
     async def clean_error(self, ctx, error):
         if isinstance(error, commands.MissingPermissions):
-            await ctx.send("❌ У вас немає прав для видалення повідомлень!")
+            await ctx.send("❌ You do not have permission to delete messages!")
         elif isinstance(error, commands.BadArgument):
-            await ctx.send("❌ Вкажіть правильне число повідомлень!\nПриклад: !clean 10")
+            await ctx.send("❌ Please specify a valid number of messages!\nExample: !clean 10")
+
+    @commands.command(name='delete_voice_channel')
+    @commands.has_permissions(manage_channels=True)
+    @is_allowed_user()
+    async def delete_voice_channel(self, ctx, *, channel_name: str):
+        """Delete voice channels with the specified name"""
+        try:
+            # Get all voice channels on the server
+            voice_channels = [c for c in ctx.guild.channels if isinstance(c, discord.VoiceChannel)]
+            deleted_count = 0
+
+            for channel in voice_channels:
+                if channel.name.lower() == channel_name.lower():
+                    try:
+                        await channel.delete()
+                        deleted_count += 1
+                    except discord.Forbidden:
+                        await ctx.send(f"❌ I do not have permission to delete the channel {channel.name}!")
+                    except Exception as e:
+                        await ctx.send(f"❌ Error deleting the channel {channel.name}: {str(e)}")
+
+            if deleted_count > 0:
+                await ctx.send(f"🗑️ Deleted {deleted_count} voice channels with the name '{channel_name}'")
+            else:
+                await ctx.send(f"❌ No voice channels with the name '{channel_name}' found!")
+
+        except discord.Forbidden:
+            await ctx.send("❌ I do not have permission to manage channels!")
+        except Exception as e:
+            await ctx.send(f"❌ An error occurred: {str(e)}")
+
+    @commands.command(name='delete_text_channel')
+    @commands.has_permissions(manage_channels=True)
+    @is_allowed_user()
+    async def delete_text_channel(self, ctx, *, channel_name: str):
+        """Delete text channels with the specified name"""
+        try:
+            # Get all text channels on the server
+            text_channels = [c for c in ctx.guild.channels if isinstance(c, discord.TextChannel)]
+            deleted_count = 0
+
+            for channel in text_channels:
+                if channel.name.lower() == channel_name.lower():
+                    try:
+                        await channel.delete()
+                        deleted_count += 1
+                    except discord.Forbidden:
+                        await ctx.send(f"❌ I do not have permission to delete the channel {channel.name}!")
+                    except Exception as e:
+                        await ctx.send(f"❌ Error deleting the channel {channel.name}: {str(e)}")
+
+            if deleted_count > 0:
+                await ctx.send(f"🗑️ Deleted {deleted_count} text channels with the name '{channel_name}'")
+            else:
+                await ctx.send(f"❌ No text channels with the name '{channel_name}' found!")
+
+        except discord.Forbidden:
+            await ctx.send("❌ I do not have permission to manage channels!")
+        except Exception as e:
+            await ctx.send(f"❌ An error occurred: {str(e)}")
 
 async def setup(bot):
     await bot.add_cog(Moderation(bot))

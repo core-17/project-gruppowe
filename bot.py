@@ -17,7 +17,8 @@ INITIAL_EXTENSIONS = [
     'cogs.music',
     'cogs.games',
     'cogs.moderation',
-    'cogs.utils'
+    'cogs.utils',
+    'cogs.sort',
 ]
 
 
