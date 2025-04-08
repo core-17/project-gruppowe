@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 import asyncio
+from db.database import init_db
 
 # Load environment variables 
 load_dotenv()
@@ -31,6 +32,7 @@ async def load_extensions():
 
 @bot.event
 async def on_ready():
+    init_db()  # Ініціалізація бази даних
     await load_extensions()
     print(f'{bot.user} has connected to Discord!')
 
@@ -41,4 +43,3 @@ if __name__ == "__main__":
         exit(1)
     
     bot.run(TOKEN)
-    

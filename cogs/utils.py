@@ -1,28 +1,20 @@
 import discord
 from discord.ext import commands
-import json
-import os
-from collections import defaultdict
-
-# Шлях до файлу зі статистикою
-STATS_FILE = 'tip_stats.json'
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+from db.database import SessionLocal, UserStats
 
 class Utils(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.tip_stats = self.load_stats()
 
-    def load_stats(self):
-        """Завантаження статистики з файлу"""
-        if os.path.exists(STATS_FILE):
-            with open(STATS_FILE, 'r') as f:
-                return defaultdict(int, json.load(f))
-        return defaultdict(int)
-
-    def save_stats(self):
-        """Збереження статистики у файл"""
-        with open(STATS_FILE, 'w') as f:
-            json.dump(dict(self.tip_stats), f)
+    def get_db(self):
+        """Отримати сесію бази даних"""
+        db = SessionLocal()
+        try:
+            yield db
+        finally:
+            db.close()
 
     @commands.command(name='hello')
     async def hello(self, ctx):
@@ -37,10 +29,30 @@ class Utils(commands.Cog):
     @commands.command(name='tip')
     async def tip(self, ctx, member: discord.Member, *, reason="perfect moment"):
         """Тіпнути користувача"""
-        # Збільшуємо лічильник тіпів для користувача
-        self.tip_stats[str(member.id)] += 1
-        self.save_stats()
-        await ctx.send(f'☠️ {ctx.author.mention} тіпнув генія на {member.mention} за {reason} ☠️')
+        try:
+            db: Session = next(self.get_db())
+
+            # Оновлення або вставка для користувача, якого тіпнули
+            db.execute(text("""
+                INSERT INTO user_stats (user_id, tips_given, tips_received)
+                VALUES (:user_id, 0, 1)
+                ON CONFLICT(user_id) DO UPDATE SET tips_received = tips_received + 1
+            """), {"user_id": str(member.id)})
+
+            # Оновлення або вставка для автора команди
+            db.execute(text("""
+                INSERT INTO user_stats (user_id, tips_given, tips_received)
+                VALUES (:user_id, 1, 0)
+                ON CONFLICT(user_id) DO UPDATE SET tips_given = tips_given + 1
+            """), {"user_id": str(ctx.author.id)})
+
+            db.commit()
+            await ctx.send(f'☠️ {ctx.author.mention} тіпнув генія на {member.mention} за {reason} ☠️')
+        except Exception as e:
+            db.rollback()
+            await ctx.send(f"❌ Сталася помилка: {str(e)}")
+        finally:
+            db.close()
 
     @tip.error
     async def tip_error(self, ctx, error):
@@ -52,30 +64,30 @@ class Utils(commands.Cog):
     @commands.command(name='top')
     async def top(self, ctx):
         """Показує топ тіпнутих користувачів"""
-        if not self.tip_stats:
-            await ctx.send("❌ Поки що нікого не тіпнули!")
-            return
-        
-        # Сортуємо користувачів за кількістю тіпів
-        sorted_stats = sorted(self.tip_stats.items(), key=lambda x: int(x[1]), reverse=True)
-        
-        # Створюємо повідомлення з топом
-        message = "🏆 Топ тіпнутих геніїв:\n\n"
-        shown_users = 0
-        
-        for user_id, tips in sorted_stats:
-            try:
-                user = await ctx.guild.fetch_member(int(user_id))
-                if user:
-                    shown_users += 1
-                    message += f"{shown_users}. {user.mention} - {tips} tip{'s' if tips != 1 else ''}\n"
-            except discord.NotFound:
-                continue
-        
-        if shown_users == 0:
-            await ctx.send("❌ Не знайдено жодного активного користувача в топі!")
-        else:
+        db: Session = next(self.get_db())
+        try:
+            # Отримуємо користувачів, відсортованих за кількістю отриманих "тіпів" у порядку спадання
+            users = db.query(UserStats).order_by(UserStats.tips_received.desc()).limit(10).all()
+
+            if not users:
+                await ctx.send("❌ Поки що нікого не тіпнули!")
+                return
+
+            # Створюємо повідомлення з топом
+            message = "🏆 Топ тіпнутих геніїв:\n\n"
+            for i, user in enumerate(users, 1):
+                try:
+                    member = await ctx.guild.fetch_member(int(user.user_id))
+                    message += f"{i}. {member.mention} - {user.tips_received} тіпів\n"
+                except discord.NotFound:
+                    # Якщо користувача немає на сервері, виводимо його ID
+                    message += f"{i}. <@{user.user_id}> - {user.tips_received} тіпів\n"
+
             await ctx.send(message)
+        except Exception as e:
+            await ctx.send(f"❌ Сталася помилка: {str(e)}")
+        finally:
+            db.close()
 
     @commands.command(name='list')
     async def list_commands(self, ctx):
