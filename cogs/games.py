@@ -9,7 +9,7 @@ class Games(commands.Cog):
 
     @commands.command(name='sales')
     async def sales(self, ctx, page: int = 1):
-        """Показує список ігор зі знижками в Steam"""
+        """Shows a list of discounted games on Steam"""
         try:
             headers = {
                 'Accept-Language': 'en',
@@ -22,7 +22,7 @@ class Games(commands.Cog):
             data = response.json()
             
             if 'specials' not in data:
-                await ctx.send("❌ Не вдалося отримати інформацію про знижки!")
+                await ctx.send("❌ Failed to retrieve discount information!")
                 return
 
             # Filter out DLC and get only base games
@@ -42,13 +42,13 @@ class Games(commands.Cog):
             total_pages = (len(specials) + items_per_page - 1) // items_per_page
             
             if page < 1 or page > total_pages:
-                await ctx.send(f"❌ Сторінка має бути між 1 та {total_pages}!")
+                await ctx.send(f"❌ Page must be between 1 and {total_pages}!")
                 return
                 
             # Create embed
             embed = discord.Embed(
-                title="🎮 Знижки на ігри в Steam",
-                description=f"Сторінка {page}/{total_pages} (без DLC та доповнень)",
+                title="🎮 Steam Game Discounts",
+                description=f"Page {page}/{total_pages} (excluding DLC and expansions)",
                 color=discord.Color.green()
             )
             
@@ -65,10 +65,10 @@ class Games(commands.Cog):
                 price_eur_original = item['original_price'] / 100
                 
                 value = (
-                    f"💰 Ціна зі знижкою:\n"
-                    f"€ ~~{price_eur_original:.2f}€~~ → **{price_eur:.2f}€**\n"
-                    f"📉 Знижка: **{discount}%**\n"
-                    f"🔗 [Сторінка в Steam](https://store.steampowered.com/app/{item['id']})"
+                    f"💰 Discounted Price:\n"
+                    f"~~{price_eur_original:.2f}€~~ → **{price_eur:.2f}€**\n"
+                    f"📉 Discount: **{discount}%**\n"
+                    f"🔗 [Steam Page](https://store.steampowered.com/app/{item['id']})"
                 )
                 
                 embed.add_field(
@@ -78,16 +78,16 @@ class Games(commands.Cog):
                 )
             
             # Add navigation instructions
-            embed.set_footer(text=f"Використовуйте !sales <номер_сторінки> для перегляду інших сторінок")
+            embed.set_footer(text=f"Use !sales <page_number> to view other pages")
             
             await ctx.send(embed=embed)
             
         except Exception as e:
-            await ctx.send(f"❌ Помилка при отриманні знижок: {str(e)}")
+            await ctx.send(f"❌ Error retrieving discounts: {str(e)}")
 
     @commands.command(name='epic')
     async def epic(self, ctx):
-        """Показує безкоштовні ігри в Epic Games Store"""
+        """Shows free games on Epic Games Store"""
         try:
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -105,7 +105,7 @@ class Games(commands.Cog):
             data = response.json()
             
             if 'data' not in data or 'Catalog' not in data['data']:
-                await ctx.send("❌ Не вдалося отримати інформацію про безкоштовні ігри!")
+                await ctx.send("❌ Failed to retrieve free games information!")
                 return
 
             # Get current and upcoming free games
@@ -143,7 +143,7 @@ class Games(commands.Cog):
 
             # Create embed
             embed = discord.Embed(
-                title="🎮 Безкоштовні ігри в Epic Games Store",
+                title="🎮 Free Games on Epic Games Store",
                 color=discord.Color.blue()
             )
 
@@ -161,24 +161,24 @@ class Games(commands.Cog):
             # Add current free games
             if current_games:
                 embed.add_field(
-                    name="🎯 Зараз безкоштовно:",
-                    value="Поточні безкоштовні ігри:",
+                    name="🎯 Currently Free:",
+                    value="Current free games:",
                     inline=False
                 )
                 
                 for item in current_games:
                     game = item['game']
                     name = game['title']
-                    description = game.get('description', 'Опис відсутній')
+                    description = game.get('description', 'No description available')
                     if len(description) > 200:
                         description = description[:200] + "..."
                     
                     end_date = parse_date(item['end_date'])
-                    end_date_str = f"\n⏰ Безкоштовно до: **{end_date.strftime('%d.%m.%Y %H:%M')} UTC**" if end_date else ""
+                    end_date_str = f"\n⏰ Free until: **{end_date.strftime('%d.%m.%Y %H:%M')} UTC**" if end_date else ""
                     
                     value = (
                         f"{description}\n"
-                        f"🔗 [Сторінка в Epic Games Store](https://store.epicgames.com/en-US/p/{game['urlSlug']})"
+                        f"🔗 [Epic Games Store Page](https://store.epicgames.com/en-US/p/{game['urlSlug']})"
                         f"{end_date_str}"
                     )
                     
@@ -191,8 +191,8 @@ class Games(commands.Cog):
             # Add upcoming free games
             if upcoming_games:
                 embed.add_field(
-                    name="🔜 Скоро будуть безкоштовні:",
-                    value="Майбутні безкоштовні ігри:",
+                    name="🔜 Coming Soon:",
+                    value="Upcoming free games:",
                     inline=False
                 )
                 
@@ -205,12 +205,12 @@ class Games(commands.Cog):
                     
                     date_range = ""
                     if start_date and end_date:
-                        date_range = (f"\n⏰ Буде безкоштовно з "
-                                    f"**{start_date.strftime('%d.%m.%Y %H:%M')}** до "
+                        date_range = (f"\n⏰ Free from "
+                                    f"**{start_date.strftime('%d.%m.%Y %H:%M')}** to "
                                     f"**{end_date.strftime('%d.%m.%Y %H:%M')} UTC**")
                     
                     value = (
-                        f"🔗 [Сторінка в Epic Games Store](https://store.epicgames.com/en-US/p/{game['urlSlug']})"
+                        f"🔗 [Epic Games Store Page](https://store.epicgames.com/en-US/p/{game['urlSlug']})"
                         f"{date_range}"
                     )
                     
@@ -221,13 +221,13 @@ class Games(commands.Cog):
                     )
 
             if not current_games and not upcoming_games:
-                await ctx.send("🎮 Наразі немає безкоштовних ігор в Epic Games Store")
+                await ctx.send("🎮 There are currently no free games on Epic Games Store")
                 return
 
             await ctx.send(embed=embed)
             
         except Exception as e:
-            await ctx.send(f"❌ Помилка при отриманні безкоштовних ігор: {str(e)}")
+            await ctx.send(f"❌ Error retrieving free games: {str(e)}")
 
 async def setup(bot):
     await bot.add_cog(Games(bot))

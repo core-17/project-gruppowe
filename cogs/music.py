@@ -70,10 +70,10 @@ class MusicPlayer:
                 try:
                     self.current = current
                     self.guild.voice_client.play(current['source'], after=lambda _: self.bot.loop.call_soon_threadsafe(self.next.set))
-                    await self.channel.send(f'🎵 Зараз грає: **{current["title"]}**')
+                    await self.channel.send(f'🎵 Now playing: **{current["title"]}**')
                     await self.next.wait()
                 except Exception as e:
-                    await self.channel.send(f'Помилка відтворення: {str(e)}')
+                    await self.channel.send(f'Playback error: {str(e)}')
 
     def destroy(self, guild):
         return self.bot.loop.create_task(self.cog.cleanup(guild))
@@ -117,7 +117,7 @@ class Music(commands.Cog):
                 data = await loop.run_in_executor(None, lambda: ytdl.extract_info(search, download=False))
                 
                 if data is None:
-                    raise Exception("Відео не знайдено")
+                    raise Exception("Video not found")
                 
                 # Handle both direct videos and search results
                 if 'entries' in data:
@@ -138,26 +138,26 @@ class Music(commands.Cog):
                         stream_url = formats[0]['url']
                 
                 if not stream_url:
-                    raise Exception("Не вдалося отримати URL потоку")
+                    raise Exception("Failed to retrieve stream URL")
                 
                 return discord.FFmpegPCMAudio(stream_url, **FFMPEG_OPTIONS), data
                 
             except Exception as e:
-                raise Exception(f"Помилка при отриманні відео: {str(e)}")
+                raise Exception(f"Error retrieving video: {str(e)}")
                 
         except Exception as e:
-            raise Exception(f"Помилка при отриманні аудіо: {str(e)}")
+            raise Exception(f"Error retrieving audio: {str(e)}")
 
     @commands.command(name='music')
     async def music(self, ctx, *, url):
-        """Відтворює музику з YouTube посилання"""
+        """Plays music from a YouTube link"""
         if not ctx.message.author.voice:
-            return await ctx.send("Ви повинні бути в голосовому каналі!")
+            return await ctx.send("You must be in a voice channel!")
 
         if not ctx.voice_client:
             await ctx.author.voice.channel.connect()
         elif ctx.voice_client.channel != ctx.author.voice.channel:
-            return await ctx.send("Бот вже використовується в іншому каналі!")
+            return await ctx.send("The bot is already being used in another channel!")
 
         async with ctx.typing():
             try:
@@ -175,63 +175,63 @@ class Music(commands.Cog):
                 if not ctx.voice_client.is_playing():
                     player.next.set()
                 
-                await ctx.send(f'🎵 Додано до черги: **{data["title"]}**')
+                await ctx.send(f'🎵 Added to queue: **{data["title"]}**')
             except Exception as e:
-                await ctx.send(f'Помилка: {str(e)}')
+                await ctx.send(f'Error: {str(e)}')
 
     @commands.command(name='queue', aliases=['q'])
     async def queue(self, ctx):
-        """Показує поточну чергу музики"""
+        """Shows the current music queue"""
         player = self.players.get(ctx.guild.id)
         
         if not player or not player.queue:
-            return await ctx.send("🎵 Черга порожня!")
+            return await ctx.send("🎵 The queue is empty!")
         
         # Create embed for queue
-        embed = discord.Embed(title="🎵 Черга музики", color=discord.Color.blue())
+        embed = discord.Embed(title="🎵 Music Queue", color=discord.Color.blue())
         
         # Add currently playing song
         if player.current:
             if isinstance(player.current, dict):
-                current_title = player.current.get('title', 'Невідома назва')
+                current_title = player.current.get('title', 'Unknown title')
             else:
-                current_title = "Зараз грає"
-            embed.add_field(name="▶️ Зараз грає:", value=current_title, inline=False)
+                current_title = "Now playing"
+            embed.add_field(name="▶️ Now playing:", value=current_title, inline=False)
         
         # Add queued songs
         queue_text = ""
         for i, track in enumerate(player.queue, 1):
             if isinstance(track, dict):
-                title = track.get('title', 'Невідома назва')
+                title = track.get('title', 'Unknown title')
             else:
-                title = f"Трек {i}"
+                title = f"Track {i}"
             queue_text += f"{i}. {title}\n"
             
             # Split into multiple fields if queue is too long
             if i % 10 == 0 or i == len(player.queue):
-                embed.add_field(name=f"📝 В черзі:", value=queue_text or "Черга порожня", inline=False)
+                embed.add_field(name=f"📝 In queue:", value=queue_text or "The queue is empty", inline=False)
                 queue_text = ""
         
         await ctx.send(embed=embed)
 
     @commands.command(name='stop')
     async def stop(self, ctx):
-        """Зупиняє відтворення музики"""
+        """Stops music playback"""
         if ctx.voice_client:
             await self.cleanup(ctx.guild)
-            await ctx.send("⏹️ Музика зупинена")
+            await ctx.send("⏹️ Music stopped")
 
     @commands.command(name='skip')
     async def skip(self, ctx):
-        """Пропустити поточний трек"""
+        """Skips the current track"""
         if ctx.voice_client is None:
-            return await ctx.send("Я не відтворюю музику зараз!")
+            return await ctx.send("I'm not playing music right now!")
 
         if ctx.voice_client.is_playing():
             ctx.voice_client.stop()
-            await ctx.send("⏭️ Пропущено поточний трек")
+            await ctx.send("⏭️ Skipped the current track")
         else:
-            await ctx.send("Нічого не грає зараз!")
+            await ctx.send("Nothing is playing right now!")
 
 async def setup(bot):
     await bot.add_cog(Music(bot))

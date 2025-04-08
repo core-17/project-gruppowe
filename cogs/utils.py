@@ -4,7 +4,7 @@ import json
 import os
 from collections import defaultdict
 
-# Шлях до файлу зі статистикою
+# Path to the stats file
 STATS_FILE = 'tip_stats.json'
 
 class Utils(commands.Cog):
@@ -13,54 +13,54 @@ class Utils(commands.Cog):
         self.tip_stats = self.load_stats()
 
     def load_stats(self):
-        """Завантаження статистики з файлу"""
+        """Load stats from the file"""
         if os.path.exists(STATS_FILE):
             with open(STATS_FILE, 'r') as f:
                 return defaultdict(int, json.load(f))
         return defaultdict(int)
 
     def save_stats(self):
-        """Збереження статистики у файл"""
+        """Save stats to the file"""
         with open(STATS_FILE, 'w') as f:
             json.dump(dict(self.tip_stats), f)
 
     @commands.command(name='hello')
     async def hello(self, ctx):
-        """Привітання з ботом"""
-        await ctx.send(f'Привіт, {ctx.author.name}! 👋')
+        """Say hello to the bot"""
+        await ctx.send(f'Hello, {ctx.author.name}! 👋')
 
     @commands.command(name='ping')
     async def ping(self, ctx):
-        """Перевірка затримки бота"""
-        await ctx.send(f'Ping! Затримка: {round(self.bot.latency * 1000)}ms')
+        """Check the bot's latency"""
+        await ctx.send(f'Ping! Latency: {round(self.bot.latency * 1000)}ms')
 
     @commands.command(name='tip')
     async def tip(self, ctx, member: discord.Member, *, reason="perfect moment"):
-        """Тіпнути користувача"""
-        # Збільшуємо лічильник тіпів для користувача
+        """Tip a user"""
+        # Increment the tip counter for the user
         self.tip_stats[str(member.id)] += 1
         self.save_stats()
-        await ctx.send(f'☠️ {ctx.author.mention} тіпнув генія на {member.mention} за {reason} ☠️')
+        await ctx.send(f'☠️ {ctx.author.mention} tipped {member.mention} for {reason} ☠️')
 
     @tip.error
     async def tip_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send('❌ Вкажіть користувача!\nПриклад: !tip @користувач причина')
+            await ctx.send('❌ Please specify a user!\nExample: !tip @user reason')
         elif isinstance(error, commands.MemberNotFound):
-            await ctx.send('❌ Користувача не знайдено!')
+            await ctx.send('❌ User not found!')
 
     @commands.command(name='top')
     async def top(self, ctx):
-        """Показує топ тіпнутих користувачів"""
+        """Show the top tipped users"""
         if not self.tip_stats:
-            await ctx.send("❌ Поки що нікого не тіпнули!")
+            await ctx.send("❌ No one has been tipped yet!")
             return
         
-        # Сортуємо користувачів за кількістю тіпів
+        # Sort users by the number of tips
         sorted_stats = sorted(self.tip_stats.items(), key=lambda x: int(x[1]), reverse=True)
         
-        # Створюємо повідомлення з топом
-        message = "🏆 Топ тіпнутих геніїв:\n\n"
+        # Create a message with the top users
+        message = "🏆 Top tipped users:\n\n"
         shown_users = 0
         
         for user_id, tips in sorted_stats:
@@ -73,41 +73,42 @@ class Utils(commands.Cog):
                 continue
         
         if shown_users == 0:
-            await ctx.send("❌ Не знайдено жодного активного користувача в топі!")
+            await ctx.send("❌ No active users found in the top!")
         else:
             await ctx.send(message)
 
     @commands.command(name='list')
     async def list_commands(self, ctx):
-        """Показує список всіх доступних команд"""
+        """Show a list of all available commands"""
         embed = discord.Embed(
-            title="📋 Список команд бота",
-            description="Ось список всіх доступних команд:",
+            title="📋 Bot Command List",
+            description="Here is a list of all available commands:",
             color=discord.Color.blue()
         )
 
         commands_list = {
-            "🎵 Музика": {
-                "!music <посилання>": "Додати музику з YouTube в чергу",
-                "!skip": "Пропустити поточний трек",
-                "!stop": "Зупинити відтворення і очистити чергу",
-                "!queue (!q)": "Показати поточну чергу музики"
+            "🎵 Music": {
+                "!music <link>": "Add music from YouTube to the queue",
+                "!skip": "Skip the current track",
+                "!stop": "Stop playback and clear the queue",
+                "!queue (!q)": "Show the current music queue"
             },
-            "🎮 Ігри": {
-                "!sales": "Показати знижки в Steam",
-                "!epic": "Показати безкоштовні ігри в Epic Games Store"
+            "🎮 Games": {
+                "!sales": "Show discounts on Steam",
+                "!epic": "Show free games in the Epic Games Store"
             },
-            "👥 Модерація": {
-                "!kick @користувач": "Вигнати користувача з серверу",
-                "!ban @користувач": "Заблокувати користувача на сервері",
-                "!clear <тип каналів>": "Видалити всі канали вказаного типу",
-                "!clean [кількість]": "Видалити повідомлення в поточному каналі"
+            "👥 Moderation": {
+                "!kick @user": "Kick a user from the server",
+                "!ban @user": "Ban a user on the server",
+                "!clear <channel type>": "Delete all channels of the specified type",
+                "!clean [amount]": "Delete messages in the current channel",
+                "!delete_voice_channel <name>": "Delete voice channels with the specified name"
             },
-            "ℹ️ Інше": {
-                "!hello": "Привітатися з ботом",
-                "!list": "Показати цей список команд",
-                "!tip @користувач": "Тіпнути користувача",
-                "!top": "Показати топ тіпнутих користувачів"
+            "ℹ️ Other": {
+                "!hello": "Say hello to the bot",
+                "!list": "Show this list of commands",
+                "!tip @user": "Tip a user",
+                "!top": "Show the top tipped users"
             }
         }
 
@@ -121,7 +122,7 @@ class Utils(commands.Cog):
                 inline=False
             )
 
-        embed.set_footer(text="Використовуйте команди з префіксом !")
+        embed.set_footer(text="Use commands with the ! prefix")
         
         await ctx.send(embed=embed)
 
