@@ -4,28 +4,6 @@ Projekt bota Discord jest zaprojektowany w języku Python z użyciem biblioteki 
 Bot jest modułowy, co oznacza, że jest podzielony na wiele komponentów odpowiadających za różne funkcje.
 📁 Struktura projektu
 
-project-root/
-│
-├── cogs/                    # Moduły komend
-│   ├── __pycache__/
-│   ├── games.py             # Promocje Steam i darmowe gry na Epic Games
-│   ├── list.py              # Komendy do pracy z listami
-│   ├── moderation.py        # Narzędzia moderacji (ban, mute, itd.)
-│   ├── music.py             # Odtwarzacz muzyki z YouTube  
-│   ├── sort.py              # Komendy sortujące
-│   └── utils.py             # Narzędzia pomocnicze
-│
-├── db/                      # Baza danych i logika obsługi
-│   ├── __pycache__/
-│   ├── __init__.py
-│   ├── bot_database.db      # Baza danych SQLite
-│   └── database.py          # Funkcje do pracy z bazą
-│└── .gitignore               # Plik ignorujący dla Gita
-├── README.md                # Dokumentacja główna
-├──SECURITY.md              # Notatki dotyczące bezpieczeństwa i tokenów
-├── bot.py                   # Główny plik uruchamiający bota
-├── requirements.txt         # Wymagania (biblioteki Python)
-
 
 ⚙️ Opis najważniejszych plików
 📁 cogs/
