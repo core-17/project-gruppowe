@@ -22,6 +22,7 @@ INITIAL_EXTENSIONS = [
     'cogs.utils',
     'cogs.sort',
     'cogs.list',
+    'cogs.math_calculator',  # Added new calculator module with appropriate name
 ]
 
 
@@ -44,4 +45,3 @@ if __name__ == "__main__":
         print("Please set up your DISCORD_TOKEN in .env file")
         exit(1)
     bot.run(TOKEN)
-    
