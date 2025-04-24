@@ -22,7 +22,7 @@ INITIAL_EXTENSIONS = [
     'cogs.utils',
     'cogs.sort',
     'cogs.list',
-    'cogs.math_calculator',  # Added new calculator module with appropriate name
+    'cogs.math_calculator',
 ]
 
 

@@ -35,6 +35,12 @@ class List(commands.Cog):
                 "!sales": "Show discounts on Steam",
                 "!epic": "Show free games in the Epic Games Store"
             },
+             "🔢 Calculator": {
+                    "!calc <expression>": "Perform mathematical calculations (e.g. !calc 2 + 2)",
+                    "!calc <function>(x)": "Calculate mathematical functions (sqrt, sin, cos, tan, log, ln, abs, factorial)",
+                    "!binary <number>": "Convert between decimal and binary numbers",
+                    "!hex <number>": "Convert between decimal and hexadecimal numbers"
+                },
             "👥 Moderation": {
                 "!kick @user": "Kick a user from the server",
                 "!ban @user": "Ban a user on the server",
