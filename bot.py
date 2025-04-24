@@ -45,4 +45,3 @@ if __name__ == "__main__":
         print("Please set up your DISCORD_TOKEN in .env file")
         exit(1)
     bot.run(TOKEN)
-    

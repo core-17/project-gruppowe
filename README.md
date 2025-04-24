@@ -15,6 +15,7 @@ moderation.py	Moderacja: ban, mute, kick, czyszczenie wiadomości
 list.py	Praca z listami użytkowników
 sort.py	Sortowanie danych (liczby, teksty)
 utils.py	Funkcje pomocnicze (formatowanie daty, generowanie komunikatów itd.)
+math_calculator.py	Kalkulator matematyczny: operacje arytmetyczne, funkcje matematyczne, konwersja systemów liczbowych
 📁 db/
 - `database.py` — logika interakcji z bazą danych SQLite
 - `bot_database.db` — główna baza danych
@@ -44,6 +45,7 @@ Projekt posiada następującą strukturę folderów i plików:
    - moderation.py: komendy do moderowania serwera.
    - sort.py: sortowanie danych związanych z grami.
    - utils.py: pomocnicze funkcje.
+   - math_calculator.py: moduł oferujący funkcje kalkulatora matematycznego.
 2. db:
    - pycache: folder zawierający pliki kompilacji.
    - init.py: plik inicjalizujący bazę danych.
@@ -67,6 +69,8 @@ Moduł moderation.py
 Moduł odpowiedzialny za moderowanie serwera Discord. Obejmuje komendy do wyrzucania i banowania użytkowników, zarządzania kanałami tekstowymi i głosowymi oraz czyszczenia wiadomości w kanałach.
 Moduł utils.py
 Moduł zawierający pomocnicze funkcje wspierające inne części systemu, np. do zarządzania źródłami audio i formatami danych.
+Moduł math_calculator.py
+Moduł zapewniający funkcje kalkulatora matematycznego. Umożliwia przeprowadzanie podstawowych operacji matematycznych (dodawanie, odejmowanie, mnożenie, dzielenie), funkcji matematycznych (sin, cos, tan, pierwiastek kwadratowy, logarytmy) oraz konwersję między różnymi systemami liczbowymi (dziesiętny, dwójkowy, szesnastkowy). Wszystkie obliczenia przeprowadzane są bezpiecznie, z walidacją danych wejściowych.
 
 Opis komend
 Komendy muzyczne
@@ -84,6 +88,10 @@ Komendy moderacyjne
 !clean [ilość]: Usuwa wiadomości w bieżącym kanale.
 !delete_voice_channel <nazwa>: Usuwa kanał głosowy o podanej nazwie.
 !delete_text_channel <nazwa>: Usuwa kanał tekstowy o podanej nazwie.
+Komendy kalkulatora
+!calc <wyrażenie>: Wykonuje obliczenia matematyczne (np. !calc 2 + 2, !calc sqrt(16)).
+!binary <liczba>: Konwertuje między systemem dziesiętnym a dwójkowym (np. !binary 10, !binary 0b1010).
+!hex <liczba>: Konwertuje między systemem dziesiętnym a szesnastkowym (np. !hex 255, !hex 0xFF).
 
 
 
@@ -95,3 +103,4 @@ Komendy moderacyjne
 •	 Architektura modularna: łatwa rozbudowa
 •	 Automatyczne ładowanie modułów
 •	 Bezpieczne przechowywanie danych (tokeny itp.)
+•	 Kalkulator matematyczny: podstawowe operacje, funkcje matematyczne, konwersje systemów liczbowych
