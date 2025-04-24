@@ -22,6 +22,7 @@ INITIAL_EXTENSIONS = [
     'cogs.utils',
     'cogs.sort',
     'cogs.list',
+    'math_calculator',
 ]
 
 
