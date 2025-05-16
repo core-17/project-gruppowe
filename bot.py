@@ -9,6 +9,7 @@ init_db()
 # Load environment variables 
 load_dotenv()
 
+
 # Bot setup with intents
 intents = discord.Intents.default()
 intents.message_content = True
