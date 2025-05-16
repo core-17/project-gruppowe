@@ -54,7 +54,14 @@ class List(commands.Cog):
                 "!list": "Show this list of commands",
                 "!tip @user": "Tip a user",
                 "!top": "Show the top tipped users"
-            }
+            },
+             "🧪 Sorting": {
+                "!randomids": "Generate random IDs for all users on the server (except bots)",
+                "!stalinsort": "Perform Stalin sort by saved IDs and kick those who do not fit"
+            
+             }
+            
+            
         }
 
         for category, commands in commands_list.items():
