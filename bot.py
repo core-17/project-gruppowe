@@ -9,10 +9,12 @@ init_db()
 # Load environment variables 
 load_dotenv()
 
+
 # Bot setup with intents
 intents = discord.Intents.default()
 intents.message_content = True
 intents.voice_states = True
+intents.members = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 INITIAL_EXTENSIONS = [
